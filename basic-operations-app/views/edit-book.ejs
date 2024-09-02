@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Book</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>Edit Book</h1>
+    <form action="/books/edit/<%= book._id %>" method="POST">
+        <input type="text" name="title" value="<%= book.title %>" required><br>
+        <textarea name="description" required><%= book.description %></textarea><br>
+        <input type="number" name="publishYear" value="<%= book.publishYear %>" required><br>
+        <input type="text" name="author" value="<%= book.author %>" required><br>
+        <input type="text" name="coverPagePath" value="<%= book.coverPagePath %>"><br>
+        <button type="submit">Update Book</button>
+    </form>
+</body>
+</html>

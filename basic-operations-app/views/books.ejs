@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Books</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>Create Book</h1>
+    <form action="/books" method="POST">
+        <input type="text" name="title" placeholder="Title" required><br>
+        <textarea name="description" placeholder="Description" required></textarea><br>
+        <input type="number" name="publishYear" placeholder="Publish Year" required><br>
+        <input type="text" name="author" placeholder="Author" required><br>
+        <input type="text" name="coverPagePath" placeholder="Cover Page Path"><br>
+        <button type="submit">Create Book</button>
+    </form>
+    <h2>My Books</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Year</th>
+                <th>Author</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% books.forEach(book => { %>
+            <tr>
+                <td><%= book.title %></td>
+                <td><%= book.description %></td>
+                <td><%= book.publishYear %></td>
+                <td><%= book.author %></td>
+                <td>
+                    <a href="/books/edit/<%= book._id %>">Edit</a>
+                    <a href="/books/delete/<%= book._id %>">Delete</a>
+                    <a href="/books/view/<%= book._id %>">View</a>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</body>
+</html>

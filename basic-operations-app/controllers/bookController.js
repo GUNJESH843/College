@@ -1,3 +1,63 @@
+const multer = require('multer');
+const path = require('path');
+const Book = require('../models/Book');
+
+// Set Storage Engine
+const storage = multer.diskStorage({
+  destination: './public/uploads/',
+  filename: (req, file, cb) => {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 1000000 },
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb('Error: Images Only!');
+    }
+  }
+}).single('coverPage');
+
+exports.renderCreateBook = async (req, res) => {
+  const books = await Book.find({ user_id: req.session.userId });
+  res.render('books', { books });
+};
+
+exports.createBook = (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      res.render('books', { msg: err });
+    } else {
+      if (req.file == undefined) {
+        res.render('books', { msg: 'No file selected!' });
+      } else {
+        const { title, description, publishYear, author } = req.body;
+        const coverPagePath = `/uploads/${req.file.filename}`;
+        const newBook = new Book({
+          user_id: req.session.userId,
+          title,
+          description,
+          publishYear,
+          author,
+          coverPagePath
+        });
+        await newBook.save();
+        res.redirect('/books');
+      }
+    }
+  });
+};
+
+// The rest of your controller code remains unchanged
+
+
 const Book = require('../models/Book');
 
 // Render the page to create a new book

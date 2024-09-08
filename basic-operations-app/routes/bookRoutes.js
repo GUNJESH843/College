@@ -10,4 +10,6 @@ router.get('/delete/:id', bookController.deleteBook);
 router.get('/view/:id', bookController.renderViewBook);
 router.get('/all', bookController.renderAllBooks);
 
+router.get('/search', bookController.searchBooks);
+
 module.exports = router;

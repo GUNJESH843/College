@@ -4,17 +4,54 @@
     <meta charset="UTF-8">
     <title>Books</title>
     <link rel="stylesheet" href="/styles.css">
+    <style>
+        /* Styling for the preview image */
+        #coverPreview {
+            width: 150px;
+            height: 200px;
+            margin-top: 10px;
+            object-fit: cover;
+            display: none; /* Hide the preview initially */
+        }
+    </style>
 </head>
 <body>
+
+    <!-- Success and Error Messages -->
+    <% if (success_msg) { %>
+        <div class="alert alert-success">
+            <%= success_msg %>
+        </div>
+    <% } %>
+    <% if (error_msg) { %>
+        <div class="alert alert-danger">
+            <%= error_msg %>
+        </div>
+    <% } %>
+
+    <!-- Search Form -->
+    <form action="/books/search" method="GET">
+        <input type="text" name="query" placeholder="Search for books..." required>
+        <button type="submit">Search</button>
+    </form>
+
     <h1>Create Book</h1>
-    <form action="/books" method="POST">
+    <form action="/books" method="POST" enctype="multipart/form-data">
         <input type="text" name="title" placeholder="Title" required><br>
         <textarea name="description" placeholder="Description" required></textarea><br>
         <input type="number" name="publishYear" placeholder="Publish Year" required><br>
         <input type="text" name="author" placeholder="Author" required><br>
-        <input type="text" name="coverPagePath" placeholder="Cover Page Path"><br>
+
+        <!-- Updated input for file upload with image preview -->
+        <input type="file" name="coverPage" accept="image/*" onchange="previewCover(event)" required><br>
+
+        <!-- Image preview section -->
+        <img id="coverPreview" alt="Cover Page Preview"><br>
+
         <button type="submit">Create Book</button>
     </form>
+
+
     <h2>My Books</h2>
     <table>
         <thead>
@@ -42,5 +79,24 @@
             <% }) %>
         </tbody>
     </table>
+
+    <script>
+        // JavaScript function to display the selected image in the preview area
+        function previewCover(event) {
+            const coverPreview = document.getElementById('coverPreview');
+            const file = event.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    coverPreview.src = e.target.result;
+                    coverPreview.style.display = 'block'; // Show the image
+                }
+                reader.readAsDataURL(file); // Read the file as a data URL
+            } else {
+                coverPreview.style.display = 'none'; // Hide the image if no file is selected
+            }
+        }
+    </script>
 </body>
 </html>

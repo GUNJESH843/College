@@ -1,6 +1,9 @@
 const multer = require('multer');
 const path = require('path');
 const Book = require('../models/Book');
+const flash = require('connect-flash');
+const app = require('express')();
+
 
 // Set Storage Engine
 const storage = multer.diskStorage({
@@ -25,64 +28,57 @@ const upload = multer({
   }
 }).single('coverPage');
 
+// Render the page to create a new book
 exports.renderCreateBook = async (req, res) => {
   const books = await Book.find({ user_id: req.session.userId });
   res.render('books', { books });
 };
 
+// Handle the creation of a new book
 exports.createBook = (req, res) => {
   upload(req, res, async (err) => {
+    console.log('Form data received:', req.body); // Debug form data
+    console.log('File uploaded:', req.file); // Debug file upload
+
     if (err) {
-      res.render('books', { msg: err });
+      console.log('Multer error:', err); // Log Multer errors
+      return res.render('books', { msg: err });
     } else {
-      if (req.file == undefined) {
-        res.render('books', { msg: 'No file selected!' });
+      if (!req.file) {
+        console.log('No file uploaded!'); // Log when no file is uploaded
+        return res.render('books', { msg: 'No file uploaded!' });
       } else {
         const { title, description, publishYear, author } = req.body;
         const coverPagePath = `/uploads/${req.file.filename}`;
-        const newBook = new Book({
-          user_id: req.session.userId,
-          title,
-          description,
-          publishYear,
-          author,
-          coverPagePath
-        });
-        await newBook.save();
-        res.redirect('/books');
+
+        try {
+          const newBook = new Book({
+            user_id: req.session.userId,
+            title,
+            description,
+            publishYear,
+            author,
+            coverPagePath
+          });
+          
+          await newBook.save();
+          console.log('Book saved:', newBook); // Log book save success
+          req.flash('success_msg', 'Book created successfully');
+          return res.redirect('/books');
+        } catch (error) {
+          console.log('Error saving book to the database:', error); // Log any DB error
+          req.flash('error_msg', 'Error: ' + error.message);
+          return res.redirect('/books');
+        }
       }
     }
   });
 };
 
-// The rest of your controller code remains unchanged
 
-
-const Book = require('../models/Book');
-
-// Render the page to create a new book
-const renderCreateBook = async (req, res) => {
-  const books = await Book.find({ user_id: req.session.userId });
-  res.render('books', { books });
-};
-
-// Handle the creation of a new book
-const createBook = async (req, res) => {
-  const { title, description, publishYear, author, coverPagePath } = req.body;
-  const book = new Book({
-    user_id: req.session.userId,
-    title,
-    description,
-    publishYear,
-    author,
-    coverPagePath
-  });
-  await book.save();
-  res.redirect('/books');
-};
 
 // Render the page to edit a book
-const renderEditBook = async (req, res) => {
+exports.renderEditBook = async (req, res) => {
   const book = await Book.findById(req.params.id);
   if (book.user_id.toString() === req.session.userId) {
     res.render('edit-book', { book });
@@ -92,7 +88,7 @@ const renderEditBook = async (req, res) => {
 };
 
 // Handle updating a book
-const updateBook = async (req, res) => {
+exports.updateBook = async (req, res) => {
   const book = await Book.findById(req.params.id);
   if (book.user_id.toString() === req.session.userId) {
     await Book.findByIdAndUpdate(req.params.id, req.body);
@@ -103,7 +99,7 @@ const updateBook = async (req, res) => {
 };
 
 // Handle deleting a book
-const deleteBook = async (req, res) => {
+exports.deleteBook = async (req, res) => {
   const book = await Book.findById(req.params.id);
   if (book.user_id.toString() === req.session.userId) {
     await Book.findByIdAndDelete(req.params.id);
@@ -112,24 +108,20 @@ const deleteBook = async (req, res) => {
 };
 
 // Render a single book view
-const renderViewBook = async (req, res) => {
+exports.renderViewBook = async (req, res) => {
   const book = await Book.findById(req.params.id).populate('user_id');
   res.render('view-book', { book });
 };
 
 // Render all books
-const renderAllBooks = async (req, res) => {
+exports.renderAllBooks = async (req, res) => {
   const books = await Book.find({});
   res.render('all-books', { books });
 };
 
-// Exporting the controller functions to be used in routes
-module.exports = {
-  renderCreateBook,
-  createBook,
-  renderEditBook,
-  updateBook,
-  deleteBook,
-  renderViewBook,
-  renderAllBooks,
+// Search for books
+exports.searchBooks = async (req, res) => {
+  const { query } = req.query;
+  const books = await Book.find({ title: { $regex: query, $options: 'i' } });
+  res.render('all-books', { books });
 };

@@ -5,6 +5,7 @@ const MongoStore = require('connect-mongo');
 const bodyParser = require('body-parser');
 const userRoutes = require('./routes/userRoutes');
 const bookRoutes = require('./routes/bookRoutes');
+const flash = require('connect-flash');
 
 const app = express();
 
@@ -31,6 +32,16 @@ app.use(session({
   saveUninitialized: true,
   store: MongoStore.create({ mongoUrl: 'mongodb://localhost:27017/basic-operations-app' }),
 }));
+
+// Flash middleware
+app.use(flash());
+
+// Use flash messages globally in your views
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  next();
+});
 
 // Routes
 app.use('/', userRoutes);
